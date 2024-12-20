@@ -134,6 +134,9 @@ def textgen_punica(model_cfg: ModelConfig, textgen_cfg: TextGenConfig,
       prefill_kv.append(kvcache)
     input_ids.extend(req.output[-1] for req in workset)
     input_ids = torch.tensor(input_ids, dtype=torch.long, device=device)
+    
+    # import pdb; pdb.set_trace()
+    
     blen = BatchLenInfo(
         prefills=[len(prompt) for _, prompt, _ in newreqs],
         decode=len(workset),
@@ -167,6 +170,8 @@ def textgen_punica(model_cfg: ModelConfig, textgen_cfg: TextGenConfig,
 
     # Post-process decode
     if workset:
+      # import pdb; pdb.set_trace()
+      
       next_tokens = torch.argmax(logits[blen.doff:], dim=-1).cpu().numpy()
       assert len(next_tokens) == len(workset)
       pbar.update(len(workset))
@@ -473,6 +478,13 @@ BENCH_FN = {
 }
 
 MODEL_CFGS = {
+    "3b":
+        ModelConfig(
+            num_layers=16,
+            num_heads=32,
+            hidden_size=4096,
+            intermediate_size=10240,
+        ),
     "7b":
         ModelConfig(
             num_layers=32,
@@ -482,9 +494,9 @@ MODEL_CFGS = {
         ),
     "13b":
         ModelConfig(
-            num_layers=40,
-            num_heads=40,
-            hidden_size=5120,
+            num_layers=56,
+            num_heads=32,
+            hidden_size=4096,
             intermediate_size=13824,
         ),
 }

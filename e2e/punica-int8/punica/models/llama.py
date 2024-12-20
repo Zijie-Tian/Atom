@@ -245,7 +245,7 @@ class LlamaDecoderLayer(nn.Module):
     torch.cuda.nvtx.range_push("r")
     hidden_states = residual + hidden_states
     torch.cuda.nvtx.range_pop()
-
+    
     # Fully Connected
     residual = hidden_states
     torch.cuda.nvtx.range_push("norm")
@@ -297,9 +297,12 @@ class LlamaModel(LlamaPreTrainedModel):
     hidden_states = self.embed_tokens(input_ids)
     torch.cuda.nvtx.range_pop()
 
+    # import pdb; pdb.set_trace()
+    
     for layer_idx, decoder_layer in enumerate(self.layers):
       torch.cuda.nvtx.range_push(f"layer={layer_idx}")
       hidden_states = decoder_layer(hidden_states, blen, prefill_kv, decode_kv)
+      # print(f"layer={layer_idx}, hidden_states={hidden_states}")
       torch.cuda.nvtx.range_pop()
 
     torch.cuda.nvtx.range_push("lastnorm")

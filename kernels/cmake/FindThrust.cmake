@@ -32,7 +32,8 @@ find_path( THRUST_INCLUDE_DIR
         ../../../thrust
         /usr/include/cuda
         /usr/local/include
-        /usr/local/cuda/include
+        # /usr/local/cuda/include
+        /usr/local/cuda-12.1/include
         ${CUDA_INCLUDE_DIRS}
   NAMES thrust/version.h
   DOC "Thrust headers"
@@ -51,13 +52,34 @@ if( THRUST_INCLUDE_DIR )
     version
     "${version}"
     )
-  
-  math(EXPR major "${version} / 100000")
-  math(EXPR minor "(${version} / 100) % 1000")
-  math(EXPR version "${version} % 100")
-  set( THRUST_VERSION "${major}.${minor}.${version}")
+  # file( STRINGS ${THRUST_INCLUDE_DIR}/thrust/version.h
+  #   major
+  #   REGEX "#define THRUST_MAJOR_VERSION[ \t]+([0-9x]+)"
+  #   )
+  # file( STRINGS ${THRUST_INCLUDE_DIR}/thrust/version.h
+  #   minor
+  #   REGEX "#define THRUST_MINOR_VERSION[ \t]+([0-9x]+)"
+  #   )
+
+  # file( STRINGS ${THRUST_INCLUDE_DIR}/thrust/version.h
+  #   version
+  #   REGEX "#define THRUST_SUBMINOR_VERSION[ \t]+([0-9x]+)"
+  #   )
+
+  # message(STATUS "THRUST_INCLUDE_DIR: ${THRUST_INCLUDE_DIR}")
+  # math(EXPR major "${version} / 100000")
+  # math(EXPR minor "(${version} / 100) % 1000")
+  # math(EXPR version "${version} % 100")
+
+  set( version "200")
+  set( major "0")
+  set( minor "2")
+  set( subminor "0")
+
+  set( THRUST_VERSION "${version}")
   set( THRUST_MAJOR_VERSION "${major}")
   set( THRUST_MINOR_VERSION "${minor}")
+  set( THRUST_SUBMINOR_VERSION "${subminor}")
 endif( THRUST_INCLUDE_DIR )
 
 # Check for required components
