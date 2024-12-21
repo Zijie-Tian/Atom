@@ -1,0 +1,27 @@
+diff --git a/environment.sh b/environment.sh
+index 0bdb0ef..eb2c042 100644
+--- a/environment.sh
++++ b/environment.sh
+@@ -1,6 +1,6 @@
+ export TORCH_INT_ROOT=$PWD
+ export CUTLASS_PATH="$TORCH_INT_ROOT/submodules/cutlass"
+-export CUDA_PATH="/usr/local/cuda"
++export CUDA_PATH="/usr/local/cuda-12.1"
+ export PATH="$CUDA_PATH/bin:$PATH"
+ 
+ # CUDA
+diff --git a/setup.py b/setup.py
+index e9f50c1..5209862 100644
+--- a/setup.py
++++ b/setup.py
+@@ -21,8 +21,8 @@ setup(
+             extra_link_args=['-lcublas_static', '-lcublasLt_static',
+                              '-lculibos', '-lcudart', '-lcudart_static',
+                              '-lrt', '-lpthread', '-ldl', '-L/usr/lib/x86_64-linux-gnu/'],
+-            extra_compile_args={'cxx': ['-std=c++14', '-O3'],
+-                                'nvcc': ['-O3', '-std=c++14', '-U__CUDA_NO_HALF_OPERATORS__', '-U__CUDA_NO_HALF_CONVERSIONS__', '-U__CUDA_NO_HALF2_OPERATORS__', f'-DCUDA_ARCH={cuda_arch}']},
++            extra_compile_args={'cxx': ['-std=c++17', '-O3'],
++                                'nvcc': ['-O3', '-std=c++17', '-U__CUDA_NO_HALF_OPERATORS__', '-U__CUDA_NO_HALF_CONVERSIONS__', '-U__CUDA_NO_HALF2_OPERATORS__', f'-DCUDA_ARCH={cuda_arch}']},
+         ),
+     ],
+     cmdclass={

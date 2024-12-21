@@ -40,3 +40,6 @@ kernels/3rdparty/libtorch/
 
 # Saved files
 saved/
+
+# libtorch
+kernels/baselines/*.zip

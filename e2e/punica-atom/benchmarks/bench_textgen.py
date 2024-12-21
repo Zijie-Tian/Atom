@@ -87,7 +87,7 @@ def textgen_punica(model_cfg: ModelConfig, textgen_cfg: TextGenConfig,
 
   kvpool = KvPoolInt4(
       # num_layers=model_cfg.num_layers,
-      num_layers=1, # Hack the memory usage 
+      num_layers=1, # Hack the memory usage
       num_heads=model_cfg.num_heads,
       head_dim=model_cfg.hidden_size // model_cfg.num_heads,
       capacity=textgen_cfg.batch_size * 2048 // 32,
@@ -477,7 +477,7 @@ MODEL_CFGS = {
             num_layers=16,
             num_heads=32,
             hidden_size=4096,
-            intermediate_size=10240,
+            intermediate_size=11008,
         ),
     "7b":
         ModelConfig(

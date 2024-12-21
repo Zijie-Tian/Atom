@@ -4,7 +4,7 @@
 trap 'kill $(jobs -p)' INT
 
 # Set GPU device
-GPU_ID=3
+GPU_ID=2
 
 # Batch size 1
 python -m benchmarks.bench_textgen --batch-size 1 --num-batches 20 --model 13b --device cuda:$GPU_ID &
