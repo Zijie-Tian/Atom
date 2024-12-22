@@ -1,6 +1,6 @@
 #include <thrust/device_vector.h>
 #include <nvbench/nvbench.cuh>
-#include <GEMM/Dense_layer_gemm_i4_o16.cuh>
+#include <GEMM/Dense_layer_gemm_w4a16.cuh>
 
 void bench_DenseLayerGEMM_i4(nvbench::state &state) {
   size_t bsz = state.get_int64("bsz");
@@ -12,8 +12,9 @@ void bench_DenseLayerGEMM_i4(nvbench::state &state) {
   size_t TEST_N_GLOBAL = hidden_dim;
 
   // Allocate input data:
-  thrust::device_vector<uint8_t> A(TEST_M_GLOBAL * TEST_K_GLOBAL / 2);
-  thrust::device_vector<uint8_t> B(TEST_N_GLOBAL * TEST_K_GLOBAL / 2);
+  thrust::device_vector<uint8_t> A(TEST_M_GLOBAL * TEST_K_GLOBAL / 2);  //> INT4
+  // thrust::device_vector<uint8_t> B(TEST_N_GLOBAL * TEST_K_GLOBAL / 2);  //> INT4
+  thrust::device_vector<half> B(TEST_N_GLOBAL * TEST_K_GLOBAL);  //> FP16
   thrust::device_vector<half2> A_s(SCALE_SIZE_A(TEST_M_GLOBAL) * ((TEST_K_GLOBAL + GROUP_SIZE - 1) / GROUP_SIZE));
   thrust::device_vector<half2> B_s(SCALE_PACKING_B(TEST_N_GLOBAL) * ((TEST_K_GLOBAL + GROUP_SIZE - 1) / GROUP_SIZE));
 
@@ -43,20 +44,12 @@ void bench_DenseLayerGEMM_i4(nvbench::state &state) {
 
   state.exec(nvbench::exec_tag::timer, [&](nvbench::launch &launch, auto &timer) {
     timer.start();
-    DenseLayerGEMM_i4_o16(
+    dense_layer_gemm_w4a16(
       thrust::raw_pointer_cast(A.data()),
       thrust::raw_pointer_cast(B.data()),
-      (uint8_t*)thrust::raw_pointer_cast(A_s.data()),
-      (uint8_t*)thrust::raw_pointer_cast(B_s.data()),
-      thrust::raw_pointer_cast(A_keeper.data()),
-      thrust::raw_pointer_cast(B_keeper.data()),
-      (uint8_t*)thrust::raw_pointer_cast(A_keeper_s.data()),
-      (uint8_t*)thrust::raw_pointer_cast(B_keeper_s.data()),
       thrust::raw_pointer_cast(D.data()),
-      TEST_M_GLOBAL,
-      TEST_N_GLOBAL,
-      TEST_K_GLOBAL
     );
+
     timer.stop();
   });
 }
