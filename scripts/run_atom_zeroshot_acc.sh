@@ -1,14 +1,14 @@
 #!/bin/bash
-# path to the Llama model 
+# path to the Llama model
 MODEL=${1}
 
 # what calibaration dataset to use
 CALIB_DATA=wikitext2
 
-BIT=4
+BIT=16
 
 # arguments to produce results in the paper
-cmd_base="--wbits ${BIT} --abits ${BIT} --a_sym --w_sym"
+cmd_base="--wbits ${BIT} --abits ${BIT} --a_sym --w_sym --quant_type fp"
 cmd_group="--act_group_size 128 --weight_group_size 128 --weight_channel_group 2"
 cmd_reorder="--reorder --act_sort_metric hessian"
 cmd_clip="--a_clip_ratio 0.9 --w_clip_ratio 0.85 --kv_clip_ratio 1.0"
