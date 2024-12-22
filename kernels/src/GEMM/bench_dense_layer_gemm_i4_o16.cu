@@ -17,8 +17,8 @@ void bench_DenseLayerGEMM_i4(nvbench::state &state) {
   thrust::device_vector<half2> A_s(SCALE_SIZE_A(TEST_M_GLOBAL) * ((TEST_K_GLOBAL + GROUP_SIZE - 1) / GROUP_SIZE));
   thrust::device_vector<half2> B_s(SCALE_PACKING_B(TEST_N_GLOBAL) * ((TEST_K_GLOBAL + GROUP_SIZE - 1) / GROUP_SIZE));
 
-  thrust::device_vector<uint8_t> A_keeper(TEST_M_GLOBAL * keeper_size);   //> Keeper in each batch.
-  thrust::device_vector<uint8_t> B_keeper(TEST_N_GLOBAL * keeper_size);   //> Keeper in each batch.
+  thrust::device_vector<uint8_t> A_keeper(TEST_M_GLOBAL * keeper_size);
+  thrust::device_vector<uint8_t> B_keeper(TEST_N_GLOBAL * keeper_size);
   thrust::device_vector<half2> A_keeper_s(SCALE_SIZE_A(TEST_M_GLOBAL));
   thrust::device_vector<half2> B_keeper_s(SCALE_PACKING_B(TEST_N_GLOBAL));
 
