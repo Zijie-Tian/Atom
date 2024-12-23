@@ -22,12 +22,19 @@ target_compile_options(bench_gemm_i4_o16 PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-max
 target_link_libraries(bench_gemm_i4_o16 PRIVATE nvbench::main)
 
 
-message(STATUS "Compile GEMM kernel benchmark.")
-add_executable(bench_gemm_i4_o16 ${PROJECT_SOURCE_DIR}/src/GEMM/bench_dense_layer_gemm_i4_o16.cu)
-target_include_directories(bench_gemm_i4_o16 PRIVATE ${ATOM_INCLUDE_DIR})
-target_include_directories(bench_gemm_i4_o16 PRIVATE ${PROJECT_SOURCE_DIR}/3rdparty/nvbench)
-target_compile_options(bench_gemm_i4_o16 PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-maxrregcount=255 -gencode arch=compute_86,code=sm_86>) 
-target_link_libraries(bench_gemm_i4_o16 PRIVATE nvbench::main)
+message(STATUS "Compile ATOM GEMM kernel benchmark.")
+add_executable(bench_gemm_i4_o4 ${PROJECT_SOURCE_DIR}/src/GEMM/bench_dense_layer_gemm_i4_o4.cu)
+target_include_directories(bench_gemm_i4_o4 PRIVATE ${ATOM_INCLUDE_DIR})
+target_include_directories(bench_gemm_i4_o4 PRIVATE ${PROJECT_SOURCE_DIR}/3rdparty/nvbench)
+target_compile_options(bench_gemm_i4_o4 PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-maxrregcount=255 -gencode arch=compute_86,code=sm_86>) 
+target_link_libraries(bench_gemm_i4_o4 PRIVATE nvbench::main)
+
+# message(STATUS "Compile GEMM kernel benchmark.")
+# add_executable(bench_gemm_i4_o16 ${PROJECT_SOURCE_DIR}/src/GEMM/bench_dense_layer_gemm_i4_o16.cu)
+# target_include_directories(bench_gemm_i4_o16 PRIVATE ${ATOM_INCLUDE_DIR})
+# target_include_directories(bench_gemm_i4_o16 PRIVATE ${PROJECT_SOURCE_DIR}/3rdparty/nvbench)
+# target_compile_options(bench_gemm_i4_o16 PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-maxrregcount=255 -gencode arch=compute_86,code=sm_86>) 
+# target_link_libraries(bench_gemm_i4_o16 PRIVATE nvbench::main)
 
 
 # message(STATUS "Compile Activate kernel benchmark.")

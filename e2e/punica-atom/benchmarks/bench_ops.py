@@ -5,6 +5,7 @@ import torch
 
 import punica.ops
 import punica.ops._kernels
+from punica.ops import scale_size
 
 from .benchmark_utils import bench, gc_torch
 
@@ -253,10 +254,79 @@ def bench_bgmv():
     print(" | ".join(outputs))
 
 
+def bench_gemm_i4_o4():
+  device = torch.device("cuda:0")
+  hidden_dim = 4096
+  group_size = 128
+  batch_sizes = [1, 4, 8, 16, 32, 128, 256, 512, 1024, 2048, 4096]  # Test specific batch sizes
+
+  print("bench_gemm_i4_o4")
+  print("batch_size | latency")
+  print("-" * 30)
+
+  for bs in batch_sizes:
+    torch.manual_seed(0xabcdabcd987)
+    
+    # Prepare input tensors
+    a = torch.randint(
+        16,
+        128, (bs, (hidden_dim - group_size) // 2),
+        dtype=torch.uint8,
+        device=device)
+    b = torch.randint(
+        16,
+        128, (hidden_dim, (hidden_dim - group_size) // 2),
+        dtype=torch.uint8,
+        device=device)
+    a_scale = torch.randn((hidden_dim // group_size - 1, scale_size(bs)),
+                          dtype=torch.float16,
+                          device=device)
+    b_scale = torch.randn((hidden_dim // group_size - 1, scale_size(bs)),
+                          dtype=torch.float16,
+                          device=device)
+    a_keeper = torch.randint(
+        0, 255, (bs, group_size), dtype=torch.uint8, device=device)
+    b_keeper = torch.randint(
+        0, 255, (bs, group_size), dtype=torch.uint8, device=device)
+    a_keeper_scale = torch.randn((scale_size(bs),),
+                                 dtype=torch.float16,
+                                 device=device)
+    b_keeper_scale = torch.randn((scale_size(bs),),
+                                 dtype=torch.float16,
+                                 device=device)
+
+    # Create CUDA events for timing
+    start_event = torch.cuda.Event(enable_timing=True)
+    end_event = torch.cuda.Event(enable_timing=True)
+
+    # Warmup
+    for _ in range(100):
+      punica.ops.dense_layer_gemm_i4_o4(a, b, a_scale, b_scale, a_keeper,
+                                        b_keeper, a_keeper_scale,
+                                        b_keeper_scale)
+    
+    # Benchmark
+    # times = []
+    start_event.record()  
+    for _ in range(100000):
+      punica.ops.dense_layer_gemm_i4_o4(a, b, a_scale, b_scale, a_keeper,
+                                        b_keeper, a_keeper_scale,
+                                        b_keeper_scale)
+    end_event.record()
+    torch.cuda.synchronize()
+    time_cost = start_event.elapsed_time(end_event)
+
+    avg_time = time_cost / 100000
+    std_time = 0
+    
+    print(f"bs={bs:2d} | {avg_time:3.12f}us±{std_time:3.12f}us")
+
+
 BENCH_FN = {
     "mha": bench_rotary_mha_decode_fixed_length,
     "lora": bench_add_lora,
     "bgmv": bench_bgmv,
+    "gemm_i4_o4": bench_gemm_i4_o4,
 }
 
 

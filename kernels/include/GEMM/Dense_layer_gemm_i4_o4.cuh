@@ -406,47 +406,47 @@ __device__ inline void dequant(
   float *accu
 ){
   // TODO: half multiplication may have accuracy drop
-  // #pragma unroll
-  // for(int i = 0;i < WARP_COL_TILES; ++i){
-  //   half2 row_scale = *(half2*)(&reg_a[i]);
-  //   #pragma unroll
-  //   for(int j = 0;j < WARP_ROW_TILES; ++j){
-  //     c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 0] = 0;
-  //     c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 1] = 0;
-  //     c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 2] = 0;
-  //     c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 3] = 0;
-  //   }
-  // }
-
-#pragma unroll
+  #pragma unroll
   for(int i = 0;i < WARP_COL_TILES; ++i){
     half2 row_scale = *(half2*)(&reg_a[i]);
-#pragma unroll
+    #pragma unroll
     for(int j = 0;j < WARP_ROW_TILES; ++j){
-      half2 col_scale = *(half2*)(&reg_b[j]);
-      half2 rs_scale = __hmul2(row_scale, col_scale);
-      float rs_scale_u = __half2float(rs_scale.x);
-      float rs_scale_d = __half2float(rs_scale.y);
-      accu[i * WARP_ROW_TILES * 4 + j * 4 + 0] += 
-        (c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 0]) *
-        rs_scale_u;
-      accu[i * WARP_ROW_TILES * 4 + j * 4 + 1] += 
-        (c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 1]) *
-        rs_scale_u;
-      accu[i * WARP_ROW_TILES * 4 + j * 4 + 2] +=
-        (c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 2]) *
-        rs_scale_d;
-      accu[i * WARP_ROW_TILES * 4 + j * 4 + 3] +=
-        (c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 3]) *
-        rs_scale_d;
-      
-      // Clear the c_frag
       c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 0] = 0;
       c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 1] = 0;
       c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 2] = 0;
       c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 3] = 0;
     }
   }
+
+// #pragma unroll
+//   for(int i = 0;i < WARP_COL_TILES; ++i){
+//     half2 row_scale = *(half2*)(&reg_a[i]);
+// #pragma unroll
+//     for(int j = 0;j < WARP_ROW_TILES; ++j){
+//       half2 col_scale = *(half2*)(&reg_b[j]);
+//       half2 rs_scale = __hmul2(row_scale, col_scale);
+//       float rs_scale_u = __half2float(rs_scale.x);
+//       float rs_scale_d = __half2float(rs_scale.y);
+//       accu[i * WARP_ROW_TILES * 4 + j * 4 + 0] += 
+//         (c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 0]) *
+//         rs_scale_u;
+//       accu[i * WARP_ROW_TILES * 4 + j * 4 + 1] += 
+//         (c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 1]) *
+//         rs_scale_u;
+//       accu[i * WARP_ROW_TILES * 4 + j * 4 + 2] +=
+//         (c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 2]) *
+//         rs_scale_d;
+//       accu[i * WARP_ROW_TILES * 4 + j * 4 + 3] +=
+//         (c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 3]) *
+//         rs_scale_d;
+      
+//       // Clear the c_frag
+//       c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 0] = 0;
+//       c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 1] = 0;
+//       c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 2] = 0;
+//       c_frag[i * WARP_ROW_TILES * 4 + j * 4 + 3] = 0;
+//     }
+//   }
 }
 
 __global__ void DenseLayerGEMM_i4_o4_kernel(
@@ -553,7 +553,7 @@ __global__ void DenseLayerGEMM_i4_o4_kernel(
       shmem + shmem_scale_offset + (writePtr + 1) % STAGE * shmem_scale_stage_offset + sizeof(half2) * SCALE_PACKING_A(wj * WARP_COL_TILES * M),
       shmem + shmem_scale_offset + shmem_scale_B_offset + (writePtr + 1) % STAGE * shmem_scale_stage_offset + sizeof(half2) * SCALE_PACKING_B(wi * WARP_ROW_TILES * N)
     );
-    // mma_calculate(c, a[0], b[0]);
+    mma_calculate(c, a[0], b[0]);
     // Pipeline load
     bool predGuard = (k + (STAGE - 1) * BLOCK_K) < K_GLOBAL;
     loadASMem(
@@ -580,7 +580,7 @@ __global__ void DenseLayerGEMM_i4_o4_kernel(
       predGuard
     );
     asm volatile("cp.async.commit_group;\n" ::);
-    // mma_calculate(c, a[1], b[1]);
+    mma_calculate(c, a[1], b[1]);
     asm volatile("cp.async.wait_group %0;\n" ::"n"(STAGE - 2));
     writePtr = (writePtr + 1) % STAGE;
     __syncthreads();
@@ -669,13 +669,13 @@ __global__ void DenseLayerGEMM_i4_o4_kernel(
       1
     );
     // Do not load: Assume KEEPER can be loaded in prelogue (KEEPER <= 3*64)
-    // mma_calculate_keeper(c, a[0], b[0]);
+    mma_calculate_keeper(c, a[0], b[0]);
     // empty group to make it correct
     asm volatile("cp.async.commit_group;\n" ::);
     asm volatile("cp.async.wait_group %0;\n" ::"n"(STAGE - 2));
     writePtr = (writePtr + 1) % STAGE;
     __syncthreads();
-    // mma_calculate_keeper(c, a[1], b[1]);
+    mma_calculate_keeper(c, a[1], b[1]);
     loadAFrag(
       a[0],
       shmem + E2S(wj * WARP_COL_TILES * M * BLOCK_K) + (writePtr + 1) % STAGE * shmem_stage_offset,
@@ -769,7 +769,6 @@ __global__ void DenseLayerGEMM_i4_o4_kernel(
       output_scale[row_offset * N_GLOBAL / GROUP_SIZE + bi] = __floats2half2_rn(scale, zero);
     }
   }
-
   // Quantize the elements_per_thread
   PackInt4 quantized[elements_per_thread / 2];
   float *elements_float = reinterpret_cast<float *>(elements_float4);
