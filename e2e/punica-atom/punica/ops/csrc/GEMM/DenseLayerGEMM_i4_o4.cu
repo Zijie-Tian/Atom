@@ -553,7 +553,7 @@ __global__ void DenseLayerGEMM_i4_o4_kernel(
       shmem + shmem_scale_offset + (writePtr + 1) % STAGE * shmem_scale_stage_offset + sizeof(half2) * SCALE_PACKING_A(wj * WARP_COL_TILES * M),
       shmem + shmem_scale_offset + shmem_scale_B_offset + (writePtr + 1) % STAGE * shmem_scale_stage_offset + sizeof(half2) * SCALE_PACKING_B(wi * WARP_ROW_TILES * N)
     );
-    // mma_calculate(c, a[0], b[0]);
+    mma_calculate(c, a[0], b[0]);
     // Pipeline load
     bool predGuard = (k + (STAGE - 1) * BLOCK_K) < K_GLOBAL;
     loadASMem(
@@ -580,7 +580,7 @@ __global__ void DenseLayerGEMM_i4_o4_kernel(
       predGuard
     );
     asm volatile("cp.async.commit_group;\n" ::);
-    // mma_calculate(c, a[1], b[1]);
+    mma_calculate(c, a[1], b[1]);
     asm volatile("cp.async.wait_group %0;\n" ::"n"(STAGE - 2));
     writePtr = (writePtr + 1) % STAGE;
     __syncthreads();
@@ -669,13 +669,13 @@ __global__ void DenseLayerGEMM_i4_o4_kernel(
       1
     );
     // Do not load: Assume KEEPER can be loaded in prelogue (KEEPER <= 3*64)
-    // mma_calculate_keeper(c, a[0], b[0]);
+    mma_calculate_keeper(c, a[0], b[0]);
     // empty group to make it correct
     asm volatile("cp.async.commit_group;\n" ::);
     asm volatile("cp.async.wait_group %0;\n" ::"n"(STAGE - 2));
     writePtr = (writePtr + 1) % STAGE;
     __syncthreads();
-    // mma_calculate_keeper(c, a[1], b[1]);
+    mma_calculate_keeper(c, a[1], b[1]);
     loadAFrag(
       a[0],
       shmem + E2S(wj * WARP_COL_TILES * M * BLOCK_K) + (writePtr + 1) % STAGE * shmem_stage_offset,
